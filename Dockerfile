@@ -1,17 +1,21 @@
-#dockerfile
-
-# Use an official Java runtime as the base image
+# Use the OpenJDK 17 alpine image as the base image
 FROM openjdk:17-jdk-alpine
 
-# Set the working directory in the container
-WORKDIR /opt/app
+# Set the working directory to /app
+WORKDIR /app
 
-ARG JAR_FILE=target/movies.jar
+# Copy the pom.xml file to the container
+COPY pom.xml .
 
-COPY ${JAR_FILE} app.jar
+# Run Maven command to download dependencies
+RUN apk add maven
+RUN mvn -B dependency:resolve
 
-# Expose port 8080
-#EXPOSE 8080
+# Copy the rest of the project files to the container
+COPY . .
 
-# Specify the command to run the application when the container starts
-CMD ["java", "-jar", "app.jar"]
+# Build the application using Maven
+RUN mvn clean package
+
+# Execute the jar file
+ENTRYPOINT ["java", "-jar", "target/movies.jar"]
